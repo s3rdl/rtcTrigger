@@ -1,0 +1,25 @@
+{
+  "name": "boom-remote-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "sync": "npm run build && npx cap sync",
+    "android": "npm run build && npx cap sync android && npx cap open android",
+    "ios": "npm run build && npx cap sync ios && npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor-community/bluetooth-le": "^6.1.0",
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.3.4",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14"
+  }
+}

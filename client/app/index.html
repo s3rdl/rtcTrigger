@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boom Remote</title>
+</head>
+<body>
+  <main class="app">
+    <h1>Boom Remote</h1>
+    <p class="hint">Native BLE app for Android and iPhone.</p>
+
+    <section class="card">
+      <h2>Security</h2>
+      <label for="authPin">PIN</label>
+      <div class="inline-control-row security-auth-row">
+        <input id="authPin" class="pin-input" type="password" inputmode="numeric" maxlength="12" placeholder="Enter PIN">
+        <div class="button-row button-row-3">
+          <button id="unlock" disabled>Unlock</button>
+          <button id="enableAuth" disabled>Enable PIN</button>
+          <button id="disableAuth" disabled>Disable PIN</button>
+        </div>
+      </div>
+      <label for="newPin">New PIN</label>
+      <div class="inline-control-row security-pin-row">
+        <input id="newPin" class="pin-input" type="password" inputmode="numeric" maxlength="12" placeholder="4-12 chars">
+        <div class="button-row button-row-1">
+          <button id="setPin" disabled>Set PIN</button>
+        </div>
+      </div>
+      <div id="authStatus">Locked</div>
+    </section>
+
+    <section class="card">
+      <button id="connect">Connect</button>
+      <button id="disconnect" disabled>Disconnect</button>
+      <div id="connectionStatus">Not connected</div>
+    </section>
+
+    <section class="card">
+      <h2>Actions</h2>
+      <div class="actions-grid">
+        <button data-command="TURN_ON_NOW" class="cmd" disabled>Turn On Now</button>
+        <button data-command="PRESS_POWER" class="cmd" disabled>Power</button>
+        <button data-command="PRESS_MODE" class="cmd" disabled>Mode</button>
+        <button data-command="GET_STATUS" class="cmd" disabled>Refresh Status</button>
+        <button data-command="ENABLE_SCHEDULE" class="cmd" disabled>Enable Schedule</button>
+        <button data-command="DISABLE_SCHEDULE" class="cmd" disabled>Disable Schedule</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Schedule</h2>
+      <label for="scheduleTime">Daily time</label>
+      <input id="scheduleTime" type="time" value="08:00">
+      <button id="setSchedule" disabled>Set Schedule</button>
+    </section>
+
+    <section class="card">
+      <h2>One-Shot</h2>
+      <label for="oneShotDate">Date</label>
+      <input id="oneShotDate" type="date">
+      <label for="oneShotTime">Time</label>
+      <input id="oneShotTime" type="time" value="08:00">
+      <button id="fillOneShotSoon" disabled>Set To Now + 5 Min</button>
+      <button id="setOneShot" disabled>Set One-Shot</button>
+      <button id="clearOneShot" disabled>Clear One-Shot</button>
+    </section>
+
+    <section class="card">
+      <h2>Status</h2>
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="status-label">Connection</div>
+          <div id="connectionStateValue" class="status-value">Disconnected</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">PIN</div>
+          <div id="authStateValue" class="status-value">Locked</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Battery</div>
+          <div id="batterySummary" class="status-value">unknown</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">RTC Time</div>
+          <div id="rtcNow" class="status-value">unknown</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Next Trigger</div>
+          <div id="nextTrigger" class="status-value">unknown</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Daily Schedule</div>
+          <div id="dailyScheduleValue" class="status-value">Off</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">One-Shot</div>
+          <div id="oneShotValue" class="status-value">Off</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">BLE Window</div>
+          <div id="bleWindowValue" class="status-value">unknown</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">BLE Wake Schedule</div>
+          <div id="bleWakeScheduleValue" class="status-value">unknown</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Last Event</div>
+          <div id="lastEventValue" class="status-value">none</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Speaker Runs</div>
+          <div id="speakerRunsValue" class="status-value">0</div>
+        </div>
+      </div>
+      <details class="raw-status">
+        <summary>Raw Status</summary>
+        <pre id="status">No data</pre>
+      </details>
+    </section>
+
+    <details class="card collapsible-card">
+      <summary>Timing</summary>
+      <div class="grid collapsible-content">
+        <label for="powerMs">Power hold ms</label>
+        <input id="powerMs" type="number" min="100" step="100" value="2200">
+        <div class="field-help">How long the Power relay stays pressed.</div>
+        <label for="bootMs">Boot wait ms</label>
+        <input id="bootMs" type="number" min="100" step="100" value="5000">
+        <div class="field-help">Wait after power-on before pressing Mode.</div>
+        <label for="modeMs">Mode press ms</label>
+        <input id="modeMs" type="number" min="50" step="50" value="300">
+        <div class="field-help">How long the Mode relay stays pressed.</div>
+        <label for="bleWindowMs">BLE window ms</label>
+        <input id="bleWindowMs" type="number" min="1000" step="1000" value="10000">
+        <div class="field-help">How long BLE stays available when idle.</div>
+        <label for="bleWakeSec">BLE wake sec</label>
+        <input id="bleWakeSec" type="number" min="5" step="5" value="60">
+        <div class="field-help">How often the device wakes up for BLE.</div>
+        <label for="bleFixedWakeEnabled">Fixed BLE wake times</label>
+        <input id="bleFixedWakeEnabled" type="checkbox">
+        <div class="field-help">Use the RTC to wake at exact times every day.</div>
+        <label for="bleWakeTimes">BLE wake times</label>
+        <input id="bleWakeTimes" type="text" placeholder="08:00,12:00,18:00">
+        <div class="field-help">Comma-separated daily wake times in HH:MM format.</div>
+        <button id="setTiming" disabled>Save Timing</button>
+      </div>
+    </details>
+
+    <details class="card collapsible-card">
+      <summary>Battery Calibration</summary>
+      <div class="grid collapsible-content">
+        <label for="batteryDivider">Divider x100</label>
+        <input id="batteryDivider" type="number" min="100" step="1" value="200">
+        <div class="field-help">Voltage-divider scaling for the ADC input.</div>
+        <label for="batteryEmpty">Empty mV</label>
+        <input id="batteryEmpty" type="number" min="2500" step="10" value="3300">
+        <div class="field-help">Battery voltage treated as 0%.</div>
+        <label for="batteryFull">Full mV</label>
+        <input id="batteryFull" type="number" min="3500" step="10" value="4200">
+        <div class="field-help">Battery voltage treated as 100%.</div>
+        <button id="setBattery" disabled>Save Battery</button>
+      </div>
+    </details>
+
+    <section class="card">
+      <h2>RTC</h2>
+      <label for="rtcDate">Date</label>
+      <input id="rtcDate" type="date">
+      <label for="rtcTime">Time</label>
+      <input id="rtcTime" type="time" value="08:00">
+      <button id="syncRtcFromBrowser" disabled>Sync From Browser Time</button>
+      <button id="setRtc" disabled>Set RTC</button>
+    </section>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+.pio
+.vscode/.browse.c_cpp.db*
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/ipch
+
+# macOS
+.DS_Store
+
+# Node / web app
+node_modules/
+dist/
+
+# PlatformIO build output
+.pio/
+
+# Android / IntelliJ
+client/app/android/.gradle/
+client/app/android/build/
+client/app/android/local.properties
+client/app/android/.idea/
+*.iml
+
+# iOS / Xcode
+client/app/ios/App/Pods/
+client/app/ios/App/build/
+client/app/ios/App/DerivedData/
+client/app/ios/App/.symlinks/
+client/app/ios/App/Podfile.lock
+
+# Logs
+*.log

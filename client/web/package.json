@@ -1,0 +1,8 @@
+{
+  "name": "boom-remote-web",
+  "private": true,
+  "scripts": {
+    "serve": "npx http-server ./ -p 8080 -a 0.0.0.0 -c-1",
+    "tunnel": "npx localtunnel --port 8080"
+  }
+}
