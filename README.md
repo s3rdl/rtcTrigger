@@ -23,10 +23,6 @@ The core use case is:
 - `client/app/`: Capacitor mobile app for Android and iPhone
 - `platformio.ini`: board environments and firmware build config
 
-The previous README is preserved as:
-
-- `README.original.md`
-
 ## Main Features
 
 - daily speaker schedule
