@@ -377,6 +377,5 @@ At the time of this README rewrite, the following are working:
 
 ## Notes
 
-- If you want the previous README wording back, restore `README.original.md`
 - If you want to change pin assignments, start with `include/settings.h`
 - If you want to change the status LED pin on XIAO, edit `src/status_led.cpp`
