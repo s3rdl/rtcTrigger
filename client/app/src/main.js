@@ -20,6 +20,7 @@ const dailyScheduleValue = document.querySelector('#dailyScheduleValue');
 const oneShotValue = document.querySelector('#oneShotValue');
 const bleWindowValue = document.querySelector('#bleWindowValue');
 const bleWakeScheduleValue = document.querySelector('#bleWakeScheduleValue');
+const bleOneShotValue = document.querySelector('#bleOneShotValue');
 const lastEventValue = document.querySelector('#lastEventValue');
 const speakerRunsValue = document.querySelector('#speakerRunsValue');
 const connectButton = document.querySelector('#connect');
@@ -33,6 +34,9 @@ const setScheduleButton = document.querySelector('#setSchedule');
 const setOneShotButton = document.querySelector('#setOneShot');
 const clearOneShotButton = document.querySelector('#clearOneShot');
 const fillOneShotSoonButton = document.querySelector('#fillOneShotSoon');
+const setBleOneShotButton = document.querySelector('#setBleOneShot');
+const clearBleOneShotButton = document.querySelector('#clearBleOneShot');
+const fillBleOneShotSoonButton = document.querySelector('#fillBleOneShotSoon');
 const setTimingButton = document.querySelector('#setTiming');
 const setBatteryButton = document.querySelector('#setBattery');
 const setRtcButton = document.querySelector('#setRtc');
@@ -71,6 +75,9 @@ function setCheckboxValueIfIdle(selector, checked) {
   if (isSavingTiming && selector === '#bleFixedWakeEnabled') {
     return;
   }
+  if (isSavingTiming && selector === '#bleIntervalWakeEnabled') {
+    return;
+  }
   input.checked = checked;
 }
 
@@ -88,6 +95,9 @@ function setConnected(connected) {
   fillOneShotSoonButton.disabled = !connected || (isAuthEnabled && !isAuthenticated);
   setOneShotButton.disabled = !connected || (isAuthEnabled && !isAuthenticated);
   clearOneShotButton.disabled = !connected || (isAuthEnabled && !isAuthenticated);
+  fillBleOneShotSoonButton.disabled = !connected || (isAuthEnabled && !isAuthenticated);
+  setBleOneShotButton.disabled = !connected || (isAuthEnabled && !isAuthenticated);
+  clearBleOneShotButton.disabled = !connected || (isAuthEnabled && !isAuthenticated);
   setTimingButton.disabled = !connected || (isAuthEnabled && !isAuthenticated);
   setBatteryButton.disabled = !connected || (isAuthEnabled && !isAuthenticated);
   setRtcButton.disabled = !connected || (isAuthEnabled && !isAuthenticated);
@@ -120,6 +130,12 @@ function fillOneShotFromSoon() {
   const { date, time } = browserDatePartsPlusMinutes(5);
   document.querySelector('#oneShotDate').value = date;
   document.querySelector('#oneShotTime').value = time;
+}
+
+function fillBleOneShotFromSoon() {
+  const { date, time } = browserDatePartsPlusMinutes(5);
+  document.querySelector('#bleOneShotDate').value = date;
+  document.querySelector('#bleOneShotTime').value = time;
 }
 
 function bleWakeTimesCompact(value) {
@@ -163,10 +179,13 @@ function hydrateForm(text) {
   const bleWakeTimes = decodeBleWakeTimes(pairs.bleWakeTimes || '');
   bleWindowValue.textContent = pairs.bleFixedWake === 'on'
     ? `${bleWakeTimes || 'unknown'} / ${pairs.bleWindowMs || '?'} ms`
-    : `${pairs.bleWindowMs || '?'} ms / ${pairs.bleWakeSec || '?'} s wake`;
+    : (pairs.bleIntervalWake === 'on'
+      ? `${pairs.bleWindowMs || '?'} ms / ${pairs.bleWakeSec || '?'} s wake`
+      : `${pairs.bleWindowMs || '?'} ms / interval off`);
   bleWakeScheduleValue.textContent = pairs.bleFixedWake === 'on'
     ? (bleWakeTimes || 'unknown')
-    : `Every ${pairs.bleWakeSec || '?'} s`;
+    : (pairs.bleIntervalWake === 'on' ? `Every ${pairs.bleWakeSec || '?'} s` : 'Disabled');
+  bleOneShotValue.textContent = pairs.bleOneShotAt || 'Off';
   lastEventValue.textContent = pairs.lastEventAt
     ? `${pairs.lastEvent || 'none'} @ ${pairs.lastEventAt}`
     : (pairs.lastEvent || 'none');
@@ -178,6 +197,11 @@ function hydrateForm(text) {
     if (date) setInputValueIfIdle('#oneShotDate', date);
     if (time) setInputValueIfIdle('#oneShotTime', time);
   }
+  if (pairs.bleOneShotAt) {
+    const [date, time] = pairs.bleOneShotAt.split('T');
+    if (date) setInputValueIfIdle('#bleOneShotDate', date);
+    if (time) setInputValueIfIdle('#bleOneShotTime', time);
+  }
   if (pairs.rtcNow && pairs.rtcNow.includes('T')) {
     const [date, time] = pairs.rtcNow.split('T');
     setInputValueIfIdle('#rtcDate', date);
@@ -188,6 +212,7 @@ function hydrateForm(text) {
   if (pairs.modeMs) setInputValueIfIdle('#modeMs', pairs.modeMs);
   if (pairs.bleWindowMs) setInputValueIfIdle('#bleWindowMs', pairs.bleWindowMs);
   if (pairs.bleWakeSec) setInputValueIfIdle('#bleWakeSec', pairs.bleWakeSec);
+  setCheckboxValueIfIdle('#bleIntervalWakeEnabled', pairs.bleIntervalWake !== 'off');
   setCheckboxValueIfIdle('#bleFixedWakeEnabled', pairs.bleFixedWake === 'on');
   if (pairs.bleWakeTimes) setInputValueIfIdle('#bleWakeTimes', bleWakeTimes);
   if (pairs.batteryDividerX100) setInputValueIfIdle('#batteryDivider', pairs.batteryDividerX100);
@@ -347,8 +372,26 @@ fillOneShotSoonButton.addEventListener('click', () => {
   fillOneShotFromSoon();
 });
 
+fillBleOneShotSoonButton.addEventListener('click', () => {
+  fillBleOneShotFromSoon();
+});
+
 clearOneShotButton.addEventListener('click', async () => {
   await sendCommand('CLEAR_ONESHOT');
+  await sendCommand('GET_STATUS');
+  await refreshStatusFromDevice();
+});
+
+setBleOneShotButton.addEventListener('click', async () => {
+  const date = document.querySelector('#bleOneShotDate').value;
+  const time = document.querySelector('#bleOneShotTime').value;
+  await sendCommand(`BWK ${date}T${time}`);
+  await sendCommand('GET_STATUS');
+  await refreshStatusFromDevice();
+});
+
+clearBleOneShotButton.addEventListener('click', async () => {
+  await sendCommand('CBW');
   await sendCommand('GET_STATUS');
   await refreshStatusFromDevice();
 });
@@ -374,6 +417,7 @@ setTimingButton.addEventListener('click', async () => {
   isSavingTiming = true;
   try {
     await sendCommand(`SET_TIMING ${document.querySelector('#powerMs').value},${document.querySelector('#bootMs').value},${document.querySelector('#modeMs').value},${document.querySelector('#bleWindowMs').value},${document.querySelector('#bleWakeSec').value}`);
+    await sendCommand(document.querySelector('#bleIntervalWakeEnabled').checked ? 'EBI' : 'DBI');
     await sendCommand(`FW${document.querySelector('#bleFixedWakeEnabled').checked ? '1' : '0'} ${bleWakeTimesCompact(document.querySelector('#bleWakeTimes').value)}`);
     await sendCommand('GET_STATUS');
     await refreshStatusFromDevice();
@@ -393,3 +437,4 @@ setBatteryButton.addEventListener('click', async () => {
 setConnected(false);
 fillRtcFromBrowserTime();
 fillOneShotFromSoon();
+fillBleOneShotFromSoon();

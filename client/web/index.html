@@ -58,7 +58,7 @@
     </section>
 
     <section class="card">
-      <h2>One-Shot</h2>
+      <h2>One-Shot Trigger</h2>
       <label for="oneShotDate">Date</label>
       <input id="oneShotDate" type="date">
       <label for="oneShotTime">Time</label>
@@ -66,6 +66,17 @@
       <button id="fillOneShotSoon" disabled>Set To Now + 5 Min</button>
       <button id="setOneShot" disabled>Set One-Shot</button>
       <button id="clearOneShot" disabled>Clear One-Shot</button>
+    </section>
+
+    <section class="card">
+      <h2>BLE One-Shot Wake</h2>
+      <label for="bleOneShotDate">Date</label>
+      <input id="bleOneShotDate" type="date">
+      <label for="bleOneShotTime">Time</label>
+      <input id="bleOneShotTime" type="time" value="08:00">
+      <button id="fillBleOneShotSoon" disabled>Set To Now + 5 Min</button>
+      <button id="setBleOneShot" disabled>Set BLE Wake</button>
+      <button id="clearBleOneShot" disabled>Clear BLE Wake</button>
     </section>
 
     <section class="card">
@@ -96,7 +107,7 @@
           <div id="dailyScheduleValue" class="status-value">Off</div>
         </div>
         <div class="status-item">
-          <div class="status-label">One-Shot</div>
+          <div class="status-label">One-Shot Trigger</div>
           <div id="oneShotValue" class="status-value">Off</div>
         </div>
         <div class="status-item">
@@ -106,6 +117,10 @@
         <div class="status-item">
           <div class="status-label">BLE Wake Schedule</div>
           <div id="bleWakeScheduleValue" class="status-value">unknown</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">BLE One-Shot</div>
+          <div id="bleOneShotValue" class="status-value">Off</div>
         </div>
         <div class="status-item">
           <div class="status-label">Last Event</div>
@@ -137,6 +152,9 @@
         <label for="bleWindowMs">BLE window ms</label>
         <input id="bleWindowMs" type="number" min="1000" step="1000" value="10000">
         <div class="field-help">How long BLE stays available when idle.</div>
+        <label for="bleIntervalWakeEnabled">Interval BLE wake</label>
+        <input id="bleIntervalWakeEnabled" type="checkbox">
+        <div class="field-help">Wake periodically for BLE using the interval below.</div>
         <label for="bleWakeSec">BLE wake sec</label>
         <input id="bleWakeSec" type="number" min="5" step="5" value="60">
         <div class="field-help">How often the device wakes up for BLE.</div>

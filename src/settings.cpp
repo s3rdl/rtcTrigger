@@ -17,10 +17,17 @@ constexpr char kKeyOneShotHour[] = "one_hr";
 constexpr char kKeyOneShotMinute[] = "one_min";
 constexpr char kKeyBleFixedWakeEnabled[] = "ble_fix";
 constexpr char kKeyBleWakeTimes[] = "ble_times";
+constexpr char kKeyBleOneShotEnabled[] = "ble_one_en";
+constexpr char kKeyBleOneShotYear[] = "ble_one_yr";
+constexpr char kKeyBleOneShotMonth[] = "ble_one_mon";
+constexpr char kKeyBleOneShotDay[] = "ble_one_day";
+constexpr char kKeyBleOneShotHour[] = "ble_one_hr";
+constexpr char kKeyBleOneShotMinute[] = "ble_one_min";
 constexpr char kKeyPowerHoldMs[] = "pwr_ms";
 constexpr char kKeyBootDelayMs[] = "boot_ms";
 constexpr char kKeyModePressMs[] = "mode_ms";
 constexpr char kKeyBleWindowMs[] = "ble_ms";
+constexpr char kKeyBleIntervalWakeEnabled[] = "ble_int_en";
 constexpr char kKeyBleWakeIntervalSec[] = "ble_sec";
 constexpr char kKeyBatteryDividerRatioX100[] = "bat_div";
 constexpr char kKeyBatteryEmptyMv[] = "bat_emp";
@@ -48,10 +55,17 @@ AppSettings loadSettings() {
       .oneShotMinute = preferences.getUChar(kKeyOneShotMinute, Defaults::oneShotMinute),
       .bleFixedWakeEnabled = preferences.getBool(kKeyBleFixedWakeEnabled, Defaults::bleFixedWakeEnabled),
       .bleWakeTimes = preferences.getString(kKeyBleWakeTimes, Defaults::bleWakeTimes),
+      .bleOneShotEnabled = preferences.getBool(kKeyBleOneShotEnabled, Defaults::bleOneShotEnabled),
+      .bleOneShotYear = preferences.getUShort(kKeyBleOneShotYear, Defaults::bleOneShotYear),
+      .bleOneShotMonth = preferences.getUChar(kKeyBleOneShotMonth, Defaults::bleOneShotMonth),
+      .bleOneShotDay = preferences.getUChar(kKeyBleOneShotDay, Defaults::bleOneShotDay),
+      .bleOneShotHour = preferences.getUChar(kKeyBleOneShotHour, Defaults::bleOneShotHour),
+      .bleOneShotMinute = preferences.getUChar(kKeyBleOneShotMinute, Defaults::bleOneShotMinute),
       .powerHoldMs = preferences.getUInt(kKeyPowerHoldMs, Defaults::powerHoldMs),
       .bootDelayMs = preferences.getUInt(kKeyBootDelayMs, Defaults::bootDelayMs),
       .modePressMs = preferences.getUInt(kKeyModePressMs, Defaults::modePressMs),
       .bleWindowMs = preferences.getUInt(kKeyBleWindowMs, Defaults::bleWindowMs),
+      .bleIntervalWakeEnabled = preferences.getBool(kKeyBleIntervalWakeEnabled, Defaults::bleIntervalWakeEnabled),
       .bleWakeIntervalSec = preferences.getUInt(kKeyBleWakeIntervalSec, Defaults::bleWakeIntervalSec),
       .batteryDividerRatioX100 = preferences.getUShort(kKeyBatteryDividerRatioX100, Defaults::batteryDividerRatioX100),
       .batteryEmptyMv = preferences.getUShort(kKeyBatteryEmptyMv, Defaults::batteryEmptyMv),
@@ -78,10 +92,17 @@ void saveSettings(const AppSettings &settings) {
   preferences.putUChar(kKeyOneShotMinute, settings.oneShotMinute);
   preferences.putBool(kKeyBleFixedWakeEnabled, settings.bleFixedWakeEnabled);
   preferences.putString(kKeyBleWakeTimes, settings.bleWakeTimes);
+  preferences.putBool(kKeyBleOneShotEnabled, settings.bleOneShotEnabled);
+  preferences.putUShort(kKeyBleOneShotYear, settings.bleOneShotYear);
+  preferences.putUChar(kKeyBleOneShotMonth, settings.bleOneShotMonth);
+  preferences.putUChar(kKeyBleOneShotDay, settings.bleOneShotDay);
+  preferences.putUChar(kKeyBleOneShotHour, settings.bleOneShotHour);
+  preferences.putUChar(kKeyBleOneShotMinute, settings.bleOneShotMinute);
   preferences.putUInt(kKeyPowerHoldMs, settings.powerHoldMs);
   preferences.putUInt(kKeyBootDelayMs, settings.bootDelayMs);
   preferences.putUInt(kKeyModePressMs, settings.modePressMs);
   preferences.putUInt(kKeyBleWindowMs, settings.bleWindowMs);
+  preferences.putBool(kKeyBleIntervalWakeEnabled, settings.bleIntervalWakeEnabled);
   preferences.putUInt(kKeyBleWakeIntervalSec, settings.bleWakeIntervalSec);
   preferences.putUShort(kKeyBatteryDividerRatioX100, settings.batteryDividerRatioX100);
   preferences.putUShort(kKeyBatteryEmptyMv, settings.batteryEmptyMv);
@@ -172,8 +193,34 @@ String formatSettings(const AppSettings &settings, float batteryVoltage) {
     encodedBleWakeTimes.replace(",", "|");
     status += ",bleWakeTimes=" + encodedBleWakeTimes;
   }
+  if (settings.bleOneShotEnabled) {
+    status += ",bleOneShotAt=";
+    status += String(settings.bleOneShotYear);
+    status += '-';
+    if (settings.bleOneShotMonth < 10) {
+      status += '0';
+    }
+    status += String(settings.bleOneShotMonth);
+    status += '-';
+    if (settings.bleOneShotDay < 10) {
+      status += '0';
+    }
+    status += String(settings.bleOneShotDay);
+    status += 'T';
+    if (settings.bleOneShotHour < 10) {
+      status += '0';
+    }
+    status += String(settings.bleOneShotHour);
+    status += ':';
+    if (settings.bleOneShotMinute < 10) {
+      status += '0';
+    }
+    status += String(settings.bleOneShotMinute);
+  }
   status += ",bleWindowMs=" + String(settings.bleWindowMs);
-  if (!settings.bleFixedWakeEnabled) {
+  status += ",bleIntervalWake=";
+  status += settings.bleIntervalWakeEnabled ? "on" : "off";
+  if (settings.bleIntervalWakeEnabled) {
     status += ",bleWakeSec=" + String(settings.bleWakeIntervalSec);
   }
   status += ",batteryPct=" + String(batteryPercentFromVoltage(settings, batteryVoltage));

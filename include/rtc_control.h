@@ -23,6 +23,7 @@ void setRtcNow(const DateTime &dateTime);
 bool rtcLostPower();
 bool rtcAlarmPending();
 bool oneShotDue(const AppSettings &settings, const DateTime &now);
+bool bleOneShotDue(const AppSettings &settings, const DateTime &now);
 void syncRtcFromBuildTime();
 bool nextTriggerForSettings(const AppSettings &settings, const DateTime &now, DateTime &nextTrigger);
 bool nextBleWakeForSettings(const AppSettings &settings, const DateTime &now, DateTime &nextWake);

@@ -145,6 +145,11 @@ void setup() {
       runSpeakerSequence(settings);
     } else {
       Serial.println("RTC wake matched non-speaker event");
+      if (gRtcAvailable && bleOneShotDue(settings, now)) {
+        Serial.println("Consuming one-shot BLE wake trigger");
+        settings.bleOneShotEnabled = false;
+        saveSettings(settings);
+      }
       recordLastEvent("ble", formatDateTime(now), false);
     }
   }

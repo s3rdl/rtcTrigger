@@ -18,6 +18,17 @@ DateTime oneShotAt(const AppSettings &settings) {
                   settings.oneShotHour, settings.oneShotMinute, 0);
 }
 
+bool isValidBleOneShot(const AppSettings &settings) {
+  return settings.bleOneShotMonth >= 1 && settings.bleOneShotMonth <= 12 &&
+         settings.bleOneShotDay >= 1 && settings.bleOneShotDay <= 31 &&
+         settings.bleOneShotHour <= 23 && settings.bleOneShotMinute <= 59;
+}
+
+DateTime bleOneShotAt(const AppSettings &settings) {
+  return DateTime(settings.bleOneShotYear, settings.bleOneShotMonth, settings.bleOneShotDay,
+                  settings.bleOneShotHour, settings.bleOneShotMinute, 0);
+}
+
 bool parseWakeTimeToken(const String &token, uint8_t &hour, uint8_t &minute) {
   String trimmed = token;
   trimmed.trim();
@@ -80,6 +91,14 @@ bool oneShotDue(const AppSettings &settings, const DateTime &now) {
   return oneShotAt(settings) <= now;
 }
 
+bool bleOneShotDue(const AppSettings &settings, const DateTime &now) {
+  if (!settings.bleOneShotEnabled || !isValidBleOneShot(settings)) {
+    return false;
+  }
+
+  return bleOneShotAt(settings) <= now;
+}
+
 bool nextTriggerForSettings(const AppSettings &settings, const DateTime &now, DateTime &nextTrigger) {
   bool hasTarget = false;
 
@@ -104,30 +123,36 @@ bool nextTriggerForSettings(const AppSettings &settings, const DateTime &now, Da
 }
 
 bool nextBleWakeForSettings(const AppSettings &settings, const DateTime &now, DateTime &nextWake) {
-  if (!settings.bleFixedWakeEnabled) {
-    return false;
+  bool hasTarget = false;
+  if (settings.bleFixedWakeEnabled) {
+    String remaining = settings.bleWakeTimes;
+    while (remaining.length() > 0) {
+      int separator = remaining.indexOf(',');
+      String token = separator >= 0 ? remaining.substring(0, separator) : remaining;
+      remaining = separator >= 0 ? remaining.substring(separator + 1) : "";
+
+      uint8_t hour = 0;
+      uint8_t minute = 0;
+      if (!parseWakeTimeToken(token, hour, minute)) {
+        continue;
+      }
+
+      DateTime candidate(now.year(), now.month(), now.day(), hour, minute, 0);
+      if (candidate <= now) {
+        candidate = candidate + TimeSpan(1, 0, 0, 0);
+      }
+
+      if (!hasTarget || candidate < nextWake) {
+        nextWake = candidate;
+        hasTarget = true;
+      }
+    }
   }
 
-  String remaining = settings.bleWakeTimes;
-  bool hasTarget = false;
-  while (remaining.length() > 0) {
-    int separator = remaining.indexOf(',');
-    String token = separator >= 0 ? remaining.substring(0, separator) : remaining;
-    remaining = separator >= 0 ? remaining.substring(separator + 1) : "";
-
-    uint8_t hour = 0;
-    uint8_t minute = 0;
-    if (!parseWakeTimeToken(token, hour, minute)) {
-      continue;
-    }
-
-    DateTime candidate(now.year(), now.month(), now.day(), hour, minute, 0);
-    if (candidate <= now) {
-      candidate = candidate + TimeSpan(1, 0, 0, 0);
-    }
-
-    if (!hasTarget || candidate < nextWake) {
-      nextWake = candidate;
+  if (settings.bleOneShotEnabled && isValidBleOneShot(settings)) {
+    DateTime exact = bleOneShotAt(settings);
+    if (exact > now && (!hasTarget || exact < nextWake)) {
+      nextWake = exact;
       hasTarget = true;
     }
   }
@@ -233,7 +258,7 @@ WakeTrigger detectWakeTrigger() {
 
 void configureWakeSources(const AppSettings &settings, bool rtcWakeConfigured) {
   esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
-  if (!settings.bleFixedWakeEnabled || !rtcWakeConfigured) {
+  if (settings.bleIntervalWakeEnabled && (!settings.bleFixedWakeEnabled || !rtcWakeConfigured)) {
     esp_sleep_enable_timer_wakeup(static_cast<uint64_t>(settings.bleWakeIntervalSec) * 1000000ULL);
   }
   pinMode(Pins::RTC_INT, INPUT_PULLUP);

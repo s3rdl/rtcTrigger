@@ -273,6 +273,9 @@ class CommandCallbacks : public NimBLECharacteristicCallbacks {
     } else if (upper == "CLEAR_ONESHOT") {
       gState->settings.oneShotEnabled = false;
       gState->settingsChanged = true;
+    } else if (upper == "CBW") {
+      gState->settings.bleOneShotEnabled = false;
+      gState->settingsChanged = true;
     } else if (upper.startsWith("SET_SCHEDULE ") || upper.startsWith("SCH ")) {
       uint8_t hour = 0;
       uint8_t minute = 0;
@@ -296,6 +299,21 @@ class CommandCallbacks : public NimBLECharacteristicCallbacks {
         gState->settings.oneShotMinute = minute;
         gState->settingsChanged = true;
       }
+    } else if (upper.startsWith("BWK ")) {
+      uint16_t year = 0;
+      uint8_t month = 0;
+      uint8_t day = 0;
+      uint8_t hour = 0;
+      uint8_t minute = 0;
+      if (parseDateTimeValue(command.substring(4), year, month, day, hour, minute)) {
+        gState->settings.bleOneShotEnabled = true;
+        gState->settings.bleOneShotYear = year;
+        gState->settings.bleOneShotMonth = month;
+        gState->settings.bleOneShotDay = day;
+        gState->settings.bleOneShotHour = hour;
+        gState->settings.bleOneShotMinute = minute;
+        gState->settingsChanged = true;
+      }
     } else if (upper.startsWith("SET_RTC ") || upper.startsWith("RTC ")) {
       DateTime rtcDateTime = parseRtcDateTime(command.substring(upper.startsWith("RTC ") ? 4 : 8));
       if (rtcDateTime.isValid()) {
@@ -308,6 +326,12 @@ class CommandCallbacks : public NimBLECharacteristicCallbacks {
       }
     } else if (upper.startsWith("SET_POWER_MS ") || upper.startsWith("PWR ")) {
       gState->settings.powerHoldMs = command.substring(upper.startsWith("PWR ") ? 4 : 13).toInt();
+      gState->settingsChanged = true;
+    } else if (upper == "EBI") {
+      gState->settings.bleIntervalWakeEnabled = true;
+      gState->settingsChanged = true;
+    } else if (upper == "DBI") {
+      gState->settings.bleIntervalWakeEnabled = false;
       gState->settingsChanged = true;
     } else if (upper.startsWith("FW ")) {
       bool enabled = false;
